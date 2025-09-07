@@ -1,5 +1,7 @@
 // --- Semantic Similarity AI ---
 
+console.log("script2.js loaded!");
+
 let generateEmbedding = null;
 let modelLoading = false;
 
