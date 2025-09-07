@@ -1,7 +1,7 @@
 // --- Semantic Similarity AI ---
 
 let generateEmbedding = null;
-let modelLoading = true;
+let modelLoading = false;
 
 async function initializeModel() {
     if (generateEmbedding || modelLoading) return;
