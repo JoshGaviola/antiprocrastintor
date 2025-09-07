@@ -7,6 +7,7 @@ async function initializeModel() {
     const loadingElement = document.getElementById('tab-similarity-loading');
     if (generateEmbedding || modelLoading) return;
     modelLoading = true;
+    console.log("Am I working?");
     if (loadingElement) loadingElement.style.display = 'block';
     try {
         const { pipeline } = await import('https://cdn.jsdelivr.net/npm/@xenova/transformers@2.6.1');
