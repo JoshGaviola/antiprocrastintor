@@ -1,7 +1,7 @@
 // --- Semantic Similarity AI ---
 
 let generateEmbedding = null;
-let modelLoading = false;
+let modelLoading = true;
 
 async function initializeModel() {
     if (generateEmbedding || modelLoading) return;
@@ -80,10 +80,13 @@ function hookTaskButtons() {
 
 // Initial hook
 hookTaskButtons();
-initializeModel();
+
 // Observe for new tasks added dynamically
 const taskList = document.getElementById('task-list');
 if (taskList) {
     const observer = new MutationObserver(hookTaskButtons);
     observer.observe(taskList, { childList: true, subtree: true });
 }
+
+// Initialize the model immediately after the website is opened
+initializeModel();
