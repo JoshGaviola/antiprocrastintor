@@ -1,6 +1,7 @@
 // --- Semantic Similarity AI ---
 
 console.log("script2.js loaded!");
+console.log(document.getElementById('tab-similarity-loading'));
 
 let generateEmbedding = null;
 let modelLoading = false;
