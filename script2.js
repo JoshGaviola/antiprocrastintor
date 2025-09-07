@@ -31,39 +31,55 @@ function cosineSimilarity(vec1, vec2) {
 }
 
 async function compareTaskWithTabs(currentTask) {
+    const loadingElement = document.getElementById('tab-similarity-loading');
+    const resultElement = document.getElementById('tab-task-similarity');
+    if (!loadingElement || !resultElement) return;
+
+    // Show loading
+    loadingElement.style.display = 'block';
+    resultElement.style.display = 'none';
+
     await initializeModel();
+
     // Get tab titles from the injected list
     const tabLinks = document.querySelectorAll('#tabs ul li a');
     const tabTitles = Array.from(tabLinks).map(link => link.textContent);
 
-    if (!currentTask || tabTitles.length === 0) return;
+    if (!currentTask || tabTitles.length === 0) {
+        loadingElement.style.display = 'none';
+        resultElement.style.display = 'none';
+        return;
+    }
 
     // Get embeddings
-    const sentences = [currentTask, ...tabTitles];
-    const embeddings = await Promise.all(
-        sentences.map(s => generateEmbedding(s, { pooling: 'mean', normalize: true }))
-    );
-    const taskEmbedding = embeddings[0].data;
-    const results = [];
+    try {
+        const sentences = [currentTask, ...tabTitles];
+        const embeddings = await Promise.all(
+            sentences.map(s => generateEmbedding(s, { pooling: 'mean', normalize: true }))
+        );
+        const taskEmbedding = embeddings[0].data;
+        const results = [];
 
-    for (let i = 1; i < embeddings.length; i++) {
-        const sim = cosineSimilarity(taskEmbedding, embeddings[i].data);
-        results.push({ title: tabTitles[i - 1], similarity: sim });
+        for (let i = 1; i < embeddings.length; i++) {
+            const sim = cosineSimilarity(taskEmbedding, embeddings[i].data);
+            results.push({ title: tabTitles[i - 1], similarity: sim });
+        }
+
+        // Display results
+        let resultHtml = '<div style="margin-bottom:10px;"><strong>Task vs Tab Similarity:</strong></div>';
+        results.forEach(r => {
+            resultHtml += `<div style="margin-bottom:4px;">"${currentTask}" vs "<span style="color:#007bff">${r.title}</span>": <b>${(r.similarity * 100).toFixed(1)}%</b></div>`;
+        });
+
+        resultElement.innerHTML = resultHtml;
+        resultElement.style.display = 'block';
+    } catch (error) {
+        resultElement.innerHTML = '<div style="color:red;">Error comparing task and tabs.</div>';
+        resultElement.style.display = 'block';
+        console.error(error);
+    } finally {
+        loadingElement.style.display = 'none';
     }
-
-    // Display results
-    let resultHtml = '<div style="margin-top:10px;"><strong>Task vs Tab Similarity:</strong></div>';
-    results.forEach(r => {
-        resultHtml += `<div style="margin-bottom:4px;">"${currentTask}" vs "<span style="color:#007bff">${r.title}</span>": <b>${(r.similarity * 100).toFixed(1)}%</b></div>`;
-    });
-
-    let resultDiv = document.getElementById('tab-task-similarity');
-    if (!resultDiv) {
-        resultDiv = document.createElement('div');
-        resultDiv.id = 'tab-task-similarity';
-        document.getElementById('tabs').appendChild(resultDiv);
-    }
-    resultDiv.innerHTML = resultHtml;
 }
 
 function hookTaskButtons() {
