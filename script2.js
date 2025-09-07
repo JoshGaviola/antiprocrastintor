@@ -80,7 +80,7 @@ function hookTaskButtons() {
 
 // Initial hook
 hookTaskButtons();
-
+initializeModel();
 // Observe for new tasks added dynamically
 const taskList = document.getElementById('task-list');
 if (taskList) {
