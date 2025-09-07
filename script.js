@@ -4,6 +4,8 @@
         const addTaskBtn = document.getElementById('add-task-btn');
         const taskInput = document.getElementById('task-input');
         const taskList = document.getElementById('task-list');
+
+        
         
         slider.addEventListener('input', function() {
             thresholdValue.textContent = this.value;
@@ -62,7 +64,7 @@
                     }
                 }
             });
-            
+            //pkn0
             // Assemble the task item
             taskActions.appendChild(playBtn);
             taskActions.appendChild(editBtn);
@@ -93,7 +95,6 @@
                 }
             });
         });
-        
         // Simulate task switching for existing tasks
         const taskItems = document.querySelectorAll('.task-item');
         taskItems.forEach(item => {
