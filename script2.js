@@ -4,8 +4,10 @@ let generateEmbedding = null;
 let modelLoading = false;
 
 async function initializeModel() {
+    const loadingElement = document.getElementById('tab-similarity-loading');
     if (generateEmbedding || modelLoading) return;
     modelLoading = true;
+    if (loadingElement) loadingElement.style.display = 'block';
     try {
         const { pipeline } = await import('https://cdn.jsdelivr.net/npm/@xenova/transformers@2.6.1');
         generateEmbedding = await pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2');
@@ -15,6 +17,7 @@ async function initializeModel() {
         alert("Failed to load the AI model. Please check your internet connection and try again.");
     } finally {
         modelLoading = false;
+        if (loadingElement) loadingElement.style.display = 'none';
     }
 }
 
