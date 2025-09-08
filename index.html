@@ -5,7 +5,264 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FocusGuard - Procrastination Detector</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* CSS styles would go here */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f7fa;
+            margin: 0;
+            padding: 0;
+            color: #333;
+        }
+        
+        .container {
+            width: 400px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: white;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+        
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 15px;
+        }
+        
+        .logo {
+            font-size: 24px;
+            color: #4CAF50;
+            margin-right: 10px;
+        }
+        
+        h1 {
+            margin: 0;
+            color: #2c3e50;
+        }
+        
+        .description {
+            text-align: center;
+            color: #7f8c8d;
+            margin-bottom: 20px;
+        }
+        
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+            padding: 8px 15px;
+            background-color: #f8f9fa;
+            border-radius: 20px;
+        }
+        
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            background-color: #4CAF50;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        
+        .status-off {
+            background-color: #e74c3c;
+        }
+        
+        .section {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .section-title {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .section-icon {
+            margin-right: 10px;
+            color: #3498db;
+        }
+        
+        #task-input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            box-sizing: border-box;
+        }
+        
+        .task-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            background-color: white;
+            border-radius: 4px;
+            margin-bottom: 10px;
+            border-left: 3px solid #3498db;
+        }
+        
+        .task-actions {
+            display: flex;
+            gap: 5px;
+        }
+        
+        .btn {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .btn-secondary {
+            background-color: #e0e0e0;
+            color: #333;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        .threshold-display {
+            text-align: center;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+        
+        .slider-container {
+            margin-bottom: 15px;
+        }
+        
+        .slider {
+            width: 100%;
+        }
+        
+        .slider-labels {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 5px;
+            font-size: 12px;
+            color: #7f8c8d;
+        }
+        
+        .mode-selector {
+            display: flex;
+            background-color: white;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 15px;
+        }
+        
+        .mode-btn {
+            flex: 1;
+            padding: 8px;
+            text-align: center;
+            cursor: pointer;
+        }
+        
+        .mode-btn.active {
+            background-color: #3498db;
+            color: white;
+        }
+        
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+        
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .slider-toggle {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 24px;
+        }
+        
+        .slider-toggle:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        
+        input:checked + .slider-toggle {
+            background-color: #4CAF50;
+        }
+        
+        input:checked + .slider-toggle:before {
+            transform: translateX(26px);
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        
+        .stat-card {
+            background-color: white;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            color: #7f8c8d;
+        }
+        
+        .footer {
+            text-align: center;
+            font-size: 12px;
+            color: #7f8c8d;
+            margin-top: 20px;
+        }
+        
+        #tabs {
+            margin-top: 15px;
+        }
+        
+        #tab-similarity-loading, #tab-task-similarity {
+            padding: 10px;
+            background-color: white;
+            border-radius: 4px;
+            margin-top: 10px;
+        }
+    </style>
     <script src="https://cdn.jsdelivr.net/npm/@xenova/transformers@2.6.1"></script>
 </head>
 <body>
@@ -54,9 +311,10 @@
                 <h2>Current Tabs</h2>
             </div>
             <div id="tabs">
-                <p>f</p>
+                <p>No tabs information available</p>
                 <div id="tab-similarity-loading" style="display:none; margin-top:10px;">Loading AI model...</div>
                 <div id="tab-task-similarity" style="display:none; margin-top:10px;"></div>
+            </div>
         </div>
         
         <div class="section">
@@ -126,7 +384,322 @@
             <p>All processing happens locally on your device</p>
         </div>
     </div>
-    <script src="script2.js"></script>
-    <script src="script.js"></script>
+
+    <script>
+        // Combined script with all functionality
+document.addEventListener('DOMContentLoaded', function() {
+    // --- Semantic Similarity AI ---
+    console.log("FocusGuard script loaded!");
+    
+    let generateEmbedding = null;
+    let modelLoading = false;
+    
+    // UI Elements
+    const slider = document.getElementById('similarity-slider');
+    const thresholdValue = document.getElementById('threshold-value');
+    const addTaskBtn = document.getElementById('add-task-btn');
+    const taskInput = document.getElementById('task-input');
+    const taskList = document.getElementById('task-list');
+    const modeButtons = document.querySelectorAll('.mode-btn');
+    
+    // Initialize the model
+    initializeModel();
+    
+    // Set up event listeners
+    setupEventListeners();
+    
+    // Hook task buttons for similarity checking
+    hookTaskButtons();
+    
+    // Set up mutation observer for dynamically added tasks
+    setupMutationObserver();
+    
+    // Set up observer for injected tab list
+    setupTabListObserver();
+    
+    async function initializeModel() {
+        const loadingElement = document.getElementById('tab-similarity-loading');
+        if (generateEmbedding || modelLoading) return;
+        modelLoading = true;
+        
+        if (loadingElement) loadingElement.style.display = 'block';
+        
+        try {
+            const { pipeline } = await import('https://cdn.jsdelivr.net/npm/@xenova/transformers@2.6.1');
+            generateEmbedding = await pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2');
+            console.log("Model loaded successfully");
+        } catch (error) {
+            console.error("Error loading model:", error);
+            alert("Failed to load the AI model. Please check your internet connection and try again.");
+        } finally {
+            modelLoading = false;
+            if (loadingElement) loadingElement.style.display = 'none';
+        }
+    }
+    
+    function setupEventListeners() {
+        // Update slider value display
+        if (slider) {
+            slider.addEventListener('input', function() {
+                if (thresholdValue) {
+                    thresholdValue.textContent = this.value;
+                }
+            });
+        }
+        
+        // Add new task functionality
+        if (addTaskBtn && taskInput && taskList) {
+            addTaskBtn.addEventListener('click', addNewTask);
+        }
+        
+        // Mode selector functionality
+        if (modeButtons.length > 0) {
+            modeButtons.forEach(button => {
+                button.addEventListener('click', handleModeChange);
+            });
+        }
+        
+        // Set up existing task items
+        const taskItems = document.querySelectorAll('.task-item');
+        taskItems.forEach(item => {
+            setupTaskItem(item);
+        });
+    }
+    
+    function addNewTask() {
+        const taskText = taskInput.value.trim();
+        
+        if (taskText === '') {
+            alert('Please enter a task name');
+            return;
+        }
+        
+        // Create new task element
+        const taskItem = document.createElement('div');
+        taskItem.className = 'task-item';
+        
+        const taskSpan = document.createElement('span');
+        taskSpan.textContent = taskText;
+        
+        const taskActions = document.createElement('div');
+        taskActions.className = 'task-actions';
+        
+        const playBtn = document.createElement('button');
+        playBtn.className = 'btn';
+        playBtn.innerHTML = '<i class="fas fa-play"></i>';
+        
+        const editBtn = document.createElement('button');
+        editBtn.className = 'btn-secondary';
+        editBtn.innerHTML = '<i class="fas fa-edit"></i>';
+        
+        // Add functionality to the buttons
+        playBtn.addEventListener('click', function() {
+            setActiveTask(taskText, this);
+        });
+        
+        editBtn.addEventListener('click', function() {
+            editTask(taskSpan, taskText);
+        });
+        
+        // Assemble the task item
+        taskActions.appendChild(playBtn);
+        taskActions.appendChild(editBtn);
+        taskItem.appendChild(taskSpan);
+        taskItem.appendChild(taskActions);
+        
+        // Add to the task list
+        taskList.appendChild(taskItem);
+        
+        // Clear the input field
+        taskInput.value = '';
+        
+        // Set up the new task item
+        setupTaskItem(taskItem);
+    }
+    
+    function setActiveTask(taskText, buttonElement) {
+        taskInput.value = taskText;
+        
+        // Reset all play buttons
+        document.querySelectorAll('.task-item .btn').forEach(btn => {
+            btn.innerHTML = '<i class="fas fa-play"></i>';
+        });
+        
+        // Mark this one as active
+        buttonElement.innerHTML = '<i class="fas fa-check"></i>';
+    }
+    
+    function editTask(taskSpan, originalText) {
+        const newTaskText = prompt('Edit your task:', taskSpan.textContent);
+        if (newTaskText !== null && newTaskText.trim() !== '') {
+            taskSpan.textContent = newTaskText.trim();
+            
+            // If this was the active task, update the input field too
+            if (taskInput.value === originalText) {
+                taskInput.value = newTaskText.trim();
+            }
+        }
+    }
+    
+    function handleModeChange() {
+        modeButtons.forEach(btn => btn.classList.remove('active'));
+        this.classList.add('active');
+        
+        const statusDot = document.querySelector('.status-dot');
+        if (this.textContent === 'Break Time') {
+            statusDot.classList.add('status-off');
+            document.querySelector('.status-indicator span').textContent = 'Protection Paused';
+        } else {
+            statusDot.classList.remove('status-off');
+            document.querySelector('.status-indicator span').textContent = 'Protection Active';
+        }
+    }
+    
+    function setupTaskItem(item) {
+        const playBtn = item.querySelector('.btn');
+        const editBtn = item.querySelector('.btn-secondary');
+        const taskSpan = item.querySelector('span');
+        
+        if (playBtn && !playBtn._listenerAdded) {
+            playBtn.addEventListener('click', function() {
+                const taskName = item.querySelector('span').textContent;
+                setActiveTask(taskName, this);
+            });
+            playBtn._listenerAdded = true;
+        }
+        
+        if (editBtn && !editBtn._listenerAdded) {
+            editBtn.addEventListener('click', function() {
+                const taskSpan = item.querySelector('span');
+                editTask(taskSpan, taskSpan.textContent);
+            });
+            editBtn._listenerAdded = true;
+        }
+    }
+    
+    function hookTaskButtons() {
+        document.querySelectorAll('.task-item .btn').forEach(btn => {
+            if (!btn._similarityHooked) {
+                btn._similarityHooked = true;
+                btn.addEventListener('click', async function() {
+                    const taskName = this.closest('.task-item').querySelector('span').textContent;
+                    await compareTaskWithTabs(taskName);
+                });
+            }
+        });
+    }
+    
+    function setupMutationObserver() {
+        if (taskList) {
+            const observer = new MutationObserver(function(mutations) {
+                mutations.forEach(function(mutation) {
+                    if (mutation.addedNodes.length) {
+                        mutation.addedNodes.forEach(function(node) {
+                            if (node.nodeType === 1 && node.classList.contains('task-item')) {
+                                setupTaskItem(node);
+                                hookTaskButtons();
+                            }
+                        });
+                    }
+                });
+            });
+            
+            observer.observe(taskList, { childList: true, subtree: true });
+        }
+    }
+    
+    function setupTabListObserver() {
+        const tabsContainer = document.getElementById('tabs');
+        if (!tabsContainer) return;
+        
+        const observer = new MutationObserver(function(mutations) {
+            mutations.forEach(function(mutation) {
+                if (mutation.addedNodes.length || mutation.removedNodes.length) {
+                    console.log("Tab list updated");
+                    // The tab list has been updated by the extension
+                }
+            });
+        });
+        
+        observer.observe(tabsContainer, { childList: true, subtree: true });
+    }
+    
+    function cosineSimilarity(vec1, vec2) {
+        let dot = 0, norm1 = 0, norm2 = 0;
+        for (let i = 0; i < vec1.length; i++) {
+            dot += vec1[i] * vec2[i];
+            norm1 += vec1[i] * vec1[i];
+            norm2 += vec2[i] * vec2[i];
+        }
+        norm1 = Math.sqrt(norm1);
+        norm2 = Math.sqrt(norm2);
+        return norm1 && norm2 ? dot / (norm1 * norm2) : 0;
+    }
+    
+    async function compareTaskWithTabs(currentTask) {
+        const loadingElement = document.getElementById('tab-similarity-loading');
+        const resultElement = document.getElementById('tab-task-similarity');
+        if (!loadingElement || !resultElement) return;
+        
+        // Show loading
+        loadingElement.style.display = 'block';
+        resultElement.style.display = 'none';
+        
+        await initializeModel();
+        
+        // Get tab titles from the injected list
+        const tabLinks = document.querySelectorAll('#tabs ul li a');
+        const tabTitles = Array.from(tabLinks).map(link => link.textContent);
+        
+        // If no tabs are available yet, show a message
+        if (!currentTask || tabTitles.length === 0) {
+            loadingElement.style.display = 'none';
+            resultElement.innerHTML = '<div style="color:#666; font-style:italic;">No open tabs to compare with</div>';
+            resultElement.style.display = 'block';
+            return;
+        }
+        
+        // Get embeddings
+        try {
+            const sentences = [currentTask, ...tabTitles];
+            const embeddings = await Promise.all(
+                sentences.map(s => generateEmbedding(s, { pooling: 'mean', normalize: true }))
+            );
+            const taskEmbedding = embeddings[0].data;
+            const results = [];
+            
+            for (let i = 1; i < embeddings.length; i++) {
+                const sim = cosineSimilarity(taskEmbedding, embeddings[i].data);
+                results.push({ title: tabTitles[i - 1], similarity: sim });
+            }
+            
+            // Sort by similarity (highest first)
+            results.sort((a, b) => b.similarity - a.similarity);
+            
+            // Display results
+            let resultHtml = '<div style="margin-bottom:10px;"><strong>Task vs Tab Similarity:</strong></div>';
+            
+            if (results.length > 0) {
+                results.forEach(r => {
+                    const similarityPercent = (r.similarity * 100).toFixed(1);
+                    const color = r.similarity > 0.5 ? '#4CAF50' : (r.similarity > 0.3 ? '#FF9800' : '#F44336');
+                    resultHtml += `<div style="margin-bottom:4px;">"${currentTask}" vs "<span style="color:#007bff">${r.title}</span>": <b style="color:${color}">${similarityPercent}%</b></div>`;
+                });
+            } else {
+                resultHtml += '<div style="color:#666; font-style:italic;">No similarity data available</div>';
+            }
+            
+            resultElement.innerHTML = resultHtml;
+            resultElement.style.display = 'block';
+        } catch (error) {
+            resultElement.innerHTML = '<div style="color:red;">Error comparing task and tabs.</div>';
+            resultElement.style.display = 'block';
+            console.error(error);
+        } finally {
+            loadingElement.style.display = 'none';
+        }
+    }
+});
+    </script>
 </body>
 </html>
