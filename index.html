@@ -464,6 +464,7 @@ document.addEventListener('DOMContentLoaded', function() {
         taskItems.forEach(item => {
             setupTaskItem(item);
         });
+        setupTaskInputObserver();
     }
     
     function addNewTask() {
@@ -608,21 +609,92 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    function setupTabListObserver() {
-        const tabsContainer = document.getElementById('tabs');
-        if (!tabsContainer) return;
+    // Replace the entire setupTabListObserver function with this enhanced version
+function setupTabListObserver() {
+    const tabsContainer = document.getElementById('tabs');
+    if (!tabsContainer) return;
+    
+    // Debounce function to prevent too many rapid comparisons
+    let debounceTimer;
+    function debouncedCompare() {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => {
+            const currentTask = taskInput.value.trim();
+            if (currentTask) {
+                compareTaskWithTabs(currentTask);
+            }
+        }, 500); // Wait 500ms after last change
+    }
+    
+    const observer = new MutationObserver(function(mutations) {
+        let shouldCompare = false;
         
-        const observer = new MutationObserver(function(mutations) {
-            mutations.forEach(function(mutation) {
-                if (mutation.addedNodes.length || mutation.removedNodes.length) {
-                    console.log("Tab list updated");
-                    // The tab list has been updated by the extension
+        mutations.forEach(function(mutation) {
+            if (mutation.addedNodes.length || mutation.removedNodes.length) {
+                // Check if the change is related to the tab list (not just loading elements)
+                const addedNodes = Array.from(mutation.addedNodes);
+                const removedNodes = Array.from(mutation.removedNodes);
+                
+                const isTabListChange = addedNodes.some(node => 
+                    node.nodeType === 1 && (node.tagName === 'UL' || node.querySelector('li'))
+                ) || removedNodes.some(node => 
+                    node.nodeType === 1 && (node.tagName === 'UL' || node.querySelector('li'))
+                );
+                
+                if (isTabListChange) {
+                    shouldCompare = true;
+                    console.log("Tab list content updated");
                 }
-            });
+            }
         });
         
-        observer.observe(tabsContainer, { childList: true, subtree: true });
-    }
+        if (shouldCompare) {
+            debouncedCompare();
+        }
+    });
+    
+    // Observe for changes to child elements and their descendants
+    observer.observe(tabsContainer, { 
+        childList: true, 
+        subtree: true 
+    });
+    
+    // Also set up an interval to check for tab updates periodically
+    setInterval(() => {
+        const currentTask = taskInput.value.trim();
+        if (currentTask) {
+            compareTaskWithTabs(currentTask);
+        }
+    }, 1000); // Update every 30 seconds as a fallback
+}
+
+// Add this new function to handle automatic comparisons
+function setupTaskInputObserver() {
+    if (!taskInput) return;
+    
+    let lastTaskValue = '';
+    let debounceTimer;
+    
+    taskInput.addEventListener('input', function() {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => {
+            const currentTask = this.value.trim();
+            if (currentTask && currentTask !== lastTaskValue) {
+                lastTaskValue = currentTask;
+                compareTaskWithTabs(currentTask);
+            }
+        }, 800); // Wait 800ms after user stops typing
+    });
+    
+    // Also compare when input loses focus
+    taskInput.addEventListener('blur', function() {
+        const currentTask = this.value.trim();
+        if (currentTask && currentTask !== lastTaskValue) {
+            lastTaskValue = currentTask;
+            compareTaskWithTabs(currentTask);
+        }
+    });
+}
     
     function cosineSimilarity(vec1, vec2) {
         let dot = 0, norm1 = 0, norm2 = 0;
@@ -636,69 +708,86 @@ document.addEventListener('DOMContentLoaded', function() {
         return norm1 && norm2 ? dot / (norm1 * norm2) : 0;
     }
     
-    async function compareTaskWithTabs(currentTask) {
-        const loadingElement = document.getElementById('tab-similarity-loading');
-        const resultElement = document.getElementById('tab-task-similarity');
-        if (!loadingElement || !resultElement) return;
-        
-        // Show loading
+    // Modify the compareTaskWithTabs function to be more efficient
+async function compareTaskWithTabs(currentTask) {
+    const loadingElement = document.getElementById('tab-similarity-loading');
+    const resultElement = document.getElementById('tab-task-similarity');
+    if (!loadingElement || !resultElement) return;
+    
+    // Show loading only if it's not already showing
+    if (loadingElement.style.display !== 'block') {
         loadingElement.style.display = 'block';
-        resultElement.style.display = 'none';
-        
-        await initializeModel();
-        
-        // Get tab titles from the injected list
-        const tabLinks = document.querySelectorAll('#tabs ul li a');
-        const tabTitles = Array.from(tabLinks).map(link => link.textContent);
-        
-        // If no tabs are available yet, show a message
-        if (!currentTask || tabTitles.length === 0) {
-            loadingElement.style.display = 'none';
-            resultElement.innerHTML = '<div style="color:#666; font-style:italic;">No open tabs to compare with</div>';
-            resultElement.style.display = 'block';
-            return;
-        }
-        
-        // Get embeddings
-        try {
-            const sentences = [currentTask, ...tabTitles];
-            const embeddings = await Promise.all(
-                sentences.map(s => generateEmbedding(s, { pooling: 'mean', normalize: true }))
-            );
-            const taskEmbedding = embeddings[0].data;
-            const results = [];
-            
-            for (let i = 1; i < embeddings.length; i++) {
-                const sim = cosineSimilarity(taskEmbedding, embeddings[i].data);
-                results.push({ title: tabTitles[i - 1], similarity: sim });
-            }
-            
-            // Sort by similarity (highest first)
-            results.sort((a, b) => b.similarity - a.similarity);
-            
-            // Display results
-            let resultHtml = '<div style="margin-bottom:10px;"><strong>Task vs Tab Similarity:</strong></div>';
-            
-            if (results.length > 0) {
-                results.forEach(r => {
-                    const similarityPercent = (r.similarity * 100).toFixed(1);
-                    const color = r.similarity > 0.5 ? '#4CAF50' : (r.similarity > 0.3 ? '#FF9800' : '#F44336');
-                    resultHtml += `<div style="margin-bottom:4px;">"${currentTask}" vs "<span style="color:#007bff">${r.title}</span>": <b style="color:${color}">${similarityPercent}%</b></div>`;
-                });
-            } else {
-                resultHtml += '<div style="color:#666; font-style:italic;">No similarity data available</div>';
-            }
-            
-            resultElement.innerHTML = resultHtml;
-            resultElement.style.display = 'block';
-        } catch (error) {
-            resultElement.innerHTML = '<div style="color:red;">Error comparing task and tabs.</div>';
-            resultElement.style.display = 'block';
-            console.error(error);
-        } finally {
-            loadingElement.style.display = 'none';
-        }
     }
+    resultElement.style.display = 'none';
+    
+    await initializeModel();
+    
+    // Get tab titles from the injected list
+    const tabLinks = document.querySelectorAll('#tabs ul li a');
+    const tabTitles = Array.from(tabLinks).map(link => link.textContent);
+    
+    // If no tabs are available yet, show a message
+    if (!currentTask || tabTitles.length === 0) {
+        loadingElement.style.display = 'none';
+        resultElement.innerHTML = '<div style="color:#666; font-style:italic;">No open tabs to compare with</div>';
+        resultElement.style.display = 'block';
+        return;
+    }
+    
+    // Get embeddings
+    try {
+        const sentences = [currentTask, ...tabTitles];
+        const embeddings = await Promise.all(
+            sentences.map(s => generateEmbedding(s, { pooling: 'mean', normalize: true }))
+        );
+        const taskEmbedding = embeddings[0].data;
+        const results = [];
+        
+        for (let i = 1; i < embeddings.length; i++) {
+            const sim = cosineSimilarity(taskEmbedding, embeddings[i].data);
+            results.push({ title: tabTitles[i - 1], similarity: sim });
+        }
+        
+        // Sort by similarity (highest first)
+        results.sort((a, b) => b.similarity - a.similarity);
+        
+        // Display results
+        let resultHtml = '<div style="margin-bottom:10px;"><strong>Task vs Tab Similarity:</strong></div>';
+        
+        if (results.length > 0) {
+            // Show top 5 most relevant and top 5 most distracting
+            const relevant = results.slice(0, 5);
+            const distracting = results.slice(-5).reverse();
+            
+            if (relevant.length > 0) {
+                resultHtml += '<div style="margin-bottom:10px; color:#4CAF50;"><strong>Most Relevant:</strong></div>';
+                relevant.forEach(r => {
+                    const similarityPercent = (r.similarity * 100).toFixed(1);
+                    resultHtml += `<div style="margin-bottom:2px;">"${r.title}": <b>${similarityPercent}%</b></div>`;
+                });
+            }
+            
+            if (distracting.length > 0) {
+                resultHtml += '<div style="margin-bottom:10px; margin-top:15px; color:#F44336;"><strong>Most Distracting:</strong></div>';
+                distracting.forEach(r => {
+                    const similarityPercent = (r.similarity * 100).toFixed(1);
+                    resultHtml += `<div style="margin-bottom:2px;">"${r.title}": <b>${similarityPercent}%</b></div>`;
+                });
+            }
+        } else {
+            resultHtml += '<div style="color:#666; font-style:italic;">No similarity data available</div>';
+        }
+        
+        resultElement.innerHTML = resultHtml;
+        resultElement.style.display = 'block';
+    } catch (error) {
+        resultElement.innerHTML = '<div style="color:red;">Error comparing task and tabs.</div>';
+        resultElement.style.display = 'block';
+        console.error(error);
+    } finally {
+        loadingElement.style.display = 'none';
+    }
+}
 });
     </script>
 </body>
