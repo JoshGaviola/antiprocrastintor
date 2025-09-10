@@ -756,11 +756,12 @@ async function compareTaskWithTabs(currentTask) {
         // Sort by similarity (highest first)
         results.sort((a, b) => b.similarity - a.similarity);
         
-        // Filter results based on the threshold - only show tabs above the threshold
+        // Separate results into relevant and irrelevant based on threshold
         const relevantResults = results.filter(r => r.similarity >= threshold);
+        const irrelevantResults = results.filter(r => r.similarity < threshold);
         
         // Display results
-        let resultHtml = `<div style="margin-bottom:10px;"><strong>Relevant Tabs (≥${(threshold * 100).toFixed(0)}% similarity):</strong></div>`;
+        let resultHtml = `<div style="margin-bottom:15px;"><strong>Relevant Tabs (≥${(threshold * 100).toFixed(0)}% similarity):</strong></div>`;
         
         if (relevantResults.length > 0) {
             relevantResults.forEach(r => {
@@ -771,17 +772,45 @@ async function compareTaskWithTabs(currentTask) {
                     <b style="color:${color}">${similarityPercent}%</b>
                 </div>`;
             });
-            
-            // Show stats about filtered results
-            resultHtml += `<div style="margin-top:10px; padding-top:10px; border-top:1px solid #eee; font-size:12px; color:#666;">
-                Showing ${relevantResults.length} of ${results.length} tabs (${((relevantResults.length / results.length) * 100).toFixed(0)}% relevant)
-            </div>`;
         } else {
-            resultHtml += `<div style="color:#666; font-style:italic;">
-                No tabs meet the ${(threshold * 100).toFixed(0)}% similarity threshold. 
-                ${results.length > 0 ? `Closest match: ${(results[0].similarity * 100).toFixed(1)}%` : ''}
+            resultHtml += `<div style="color:#666; font-style:italic; margin-bottom:15px;">
+                No relevant tabs found at this threshold.
             </div>`;
         }
+        
+        // Show irrelevant tabs section
+        resultHtml += `<div style="margin-bottom:15px; margin-top:20px; padding-top:10px; border-top:1px solid #eee;">
+            <strong style="color:#999;">Irrelevant Tabs (<${(threshold * 100).toFixed(0)}% similarity):</strong>
+        </div>`;
+        
+        if (irrelevantResults.length > 0) {
+            // Show top 5 most distracting irrelevant tabs
+            const mostDistracting = irrelevantResults.slice(0, 5);
+            
+            mostDistracting.forEach(r => {
+                const similarityPercent = (r.similarity * 100).toFixed(1);
+                resultHtml += `<div style="margin-bottom:3px; color:#999; font-size:14px;">
+                    ${r.title}: <b>${similarityPercent}%</b>
+                </div>`;
+            });
+            
+            // Show count of remaining irrelevant tabs
+            if (irrelevantResults.length > 5) {
+                resultHtml += `<div style="color:#ccc; font-size:12px; margin-top:5px;">
+                    + ${irrelevantResults.length - 5} more irrelevant tabs...
+                </div>`;
+            }
+        } else {
+            resultHtml += `<div style="color:#ccc; font-style:italic;">
+                All tabs are relevant at this threshold.
+            </div>`;
+        }
+        
+        // Show summary statistics
+        resultHtml += `<div style="margin-top:15px; padding-top:10px; border-top:1px solid #eee; font-size:12px; color:#666;">
+            <strong>Summary:</strong> ${relevantResults.length} relevant, ${irrelevantResults.length} irrelevant tabs
+            (${((relevantResults.length / results.length) * 100).toFixed(0)}% focused)
+        </div>`;
         
         resultElement.innerHTML = resultHtml;
         resultElement.style.display = 'block';
