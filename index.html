@@ -712,7 +712,12 @@ function setupTaskInputObserver() {
 async function compareTaskWithTabs(currentTask) {
     const loadingElement = document.getElementById('tab-similarity-loading');
     const resultElement = document.getElementById('tab-task-similarity');
-    if (!loadingElement || !resultElement) return;
+    const thresholdValue = document.getElementById('threshold-value');
+    
+    if (!loadingElement || !resultElement || !thresholdValue) return;
+    
+    // Get the threshold value from the slider display
+    const threshold = parseFloat(thresholdValue.textContent);
     
     // Show loading only if it's not already showing
     if (loadingElement.style.display !== 'block') {
@@ -751,31 +756,31 @@ async function compareTaskWithTabs(currentTask) {
         // Sort by similarity (highest first)
         results.sort((a, b) => b.similarity - a.similarity);
         
-        // Display results
-        let resultHtml = '<div style="margin-bottom:10px;"><strong>Task vs Tab Similarity:</strong></div>';
+        // Filter results based on the threshold - only show tabs above the threshold
+        const relevantResults = results.filter(r => r.similarity >= threshold);
         
-        if (results.length > 0) {
-            // Show top 5 most relevant and top 5 most distracting
-            const relevant = results.slice(0, 5);
-            const distracting = results.slice(-5).reverse();
+        // Display results
+        let resultHtml = `<div style="margin-bottom:10px;"><strong>Relevant Tabs (≥${(threshold * 100).toFixed(0)}% similarity):</strong></div>`;
+        
+        if (relevantResults.length > 0) {
+            relevantResults.forEach(r => {
+                const similarityPercent = (r.similarity * 100).toFixed(1);
+                const color = r.similarity > 0.7 ? '#4CAF50' : (r.similarity > 0.5 ? '#FF9800' : '#F44336');
+                resultHtml += `<div style="margin-bottom:4px;">
+                    <span style="color:#007bff">${r.title}</span>: 
+                    <b style="color:${color}">${similarityPercent}%</b>
+                </div>`;
+            });
             
-            if (relevant.length > 0) {
-                resultHtml += '<div style="margin-bottom:10px; color:#4CAF50;"><strong>Most Relevant:</strong></div>';
-                relevant.forEach(r => {
-                    const similarityPercent = (r.similarity * 100).toFixed(1);
-                    resultHtml += `<div style="margin-bottom:2px;">"${r.title}": <b>${similarityPercent}%</b></div>`;
-                });
-            }
-            
-            if (distracting.length > 0) {
-                resultHtml += '<div style="margin-bottom:10px; margin-top:15px; color:#F44336;"><strong>Most Distracting:</strong></div>';
-                distracting.forEach(r => {
-                    const similarityPercent = (r.similarity * 100).toFixed(1);
-                    resultHtml += `<div style="margin-bottom:2px;">"${r.title}": <b>${similarityPercent}%</b></div>`;
-                });
-            }
+            // Show stats about filtered results
+            resultHtml += `<div style="margin-top:10px; padding-top:10px; border-top:1px solid #eee; font-size:12px; color:#666;">
+                Showing ${relevantResults.length} of ${results.length} tabs (${((relevantResults.length / results.length) * 100).toFixed(0)}% relevant)
+            </div>`;
         } else {
-            resultHtml += '<div style="color:#666; font-style:italic;">No similarity data available</div>';
+            resultHtml += `<div style="color:#666; font-style:italic;">
+                No tabs meet the ${(threshold * 100).toFixed(0)}% similarity threshold. 
+                ${results.length > 0 ? `Closest match: ${(results[0].similarity * 100).toFixed(1)}%` : ''}
+            </div>`;
         }
         
         resultElement.innerHTML = resultHtml;
