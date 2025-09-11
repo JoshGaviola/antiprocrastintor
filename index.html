@@ -779,38 +779,29 @@ async function compareTaskWithTabs(currentTask) {
         }
         
         // Show irrelevant tabs section
-        resultHtml += `<div style="margin-bottom:15px; margin-top:20px; padding-top:10px; border-top:1px solid #eee;">
-            <strong style="color:#999;">Irrelevant Tabs (<${(threshold * 100).toFixed(0)}% similarity):</strong>
+resultHtml += `<div style="margin-bottom:15px; margin-top:20px; padding-top:10px; border-top:1px solid #eee;">
+    <strong style="color:#999;">Irrelevant Tabs (<${(threshold * 100).toFixed(0)}% similarity):</strong>
+</div>`;
+
+if (irrelevantResults.length > 0) {
+    // Show ALL irrelevant tabs, sorted from most to least distracting (highest to lowest similarity)
+    irrelevantResults.forEach(r => {
+        const similarityPercent = (r.similarity * 100).toFixed(1);
+        resultHtml += `<div style="margin-bottom:3px; color:#999; font-size:14px;">
+            ${r.title}: <b>${similarityPercent}%</b>
         </div>`;
-        
-        if (irrelevantResults.length > 0) {
-            // Show top 5 most distracting irrelevant tabs
-            const mostDistracting = irrelevantResults.slice(0, 5);
-            
-            mostDistracting.forEach(r => {
-                const similarityPercent = (r.similarity * 100).toFixed(1);
-                resultHtml += `<div style="margin-bottom:3px; color:#999; font-size:14px;">
-                    ${r.title}: <b>${similarityPercent}%</b>
-                </div>`;
-            });
-            
-            // Show count of remaining irrelevant tabs
-            if (irrelevantResults.length > 5) {
-                resultHtml += `<div style="color:#ccc; font-size:12px; margin-top:5px;">
-                    + ${irrelevantResults.length - 5} more irrelevant tabs...
-                </div>`;
-            }
-        } else {
-            resultHtml += `<div style="color:#ccc; font-style:italic;">
-                All tabs are relevant at this threshold.
-            </div>`;
-        }
-        
-        // Show summary statistics
-        resultHtml += `<div style="margin-top:15px; padding-top:10px; border-top:1px solid #eee; font-size:12px; color:#666;">
-            <strong>Summary:</strong> ${relevantResults.length} relevant, ${irrelevantResults.length} irrelevant tabs
-            (${((relevantResults.length / results.length) * 100).toFixed(0)}% focused)
-        </div>`;
+    });
+} else {
+    resultHtml += `<div style="color:#ccc; font-style:italic;">
+        All tabs are relevant at this threshold.
+    </div>`;
+}
+
+// Show summary statistics
+resultHtml += `<div style="margin-top:15px; padding-top:10px; border-top:1px solid #eee; font-size:12px; color:#666;">
+    <strong>Summary:</strong> ${relevantResults.length} relevant, ${irrelevantResults.length} irrelevant tabs
+    (${((relevantResults.length / results.length) * 100).toFixed(0)}% focused)
+</div>`;
         
         resultElement.innerHTML = resultHtml;
         resultElement.style.display = 'block';
